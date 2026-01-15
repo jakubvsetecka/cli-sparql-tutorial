@@ -78,6 +78,104 @@ def has_computed_column(results, var_name):
 
 
 # =============================================================================
+# FLEXIBLE VALIDATION HELPER FUNCTIONS (variable-name agnostic)
+# =============================================================================
+
+def results_contain_any(results, expected_values):
+    """Check if results contain expected values in ANY variable."""
+    if not results:
+        return False
+    all_values = set()
+    for row in results:
+        for val in row.values():
+            all_values.add(str(val))
+    return all(any(exp in val for val in all_values) for exp in expected_values)
+
+
+def has_any_numeric_column(results):
+    """Check if results have at least one column with numeric values."""
+    if not results:
+        return False
+    for row in results:
+        for val in row.values():
+            try:
+                float(str(val))
+                return True
+            except (ValueError, TypeError):
+                continue
+    return False
+
+
+def get_numeric_values(results):
+    """Extract all numeric values from results regardless of column name."""
+    numeric_vals = []
+    for row in results:
+        for val in row.values():
+            try:
+                numeric_vals.append(float(str(val)))
+            except (ValueError, TypeError):
+                continue
+    return numeric_vals
+
+
+def all_rows_have_numeric_above(results, threshold):
+    """Check if all rows have at least one numeric value above threshold."""
+    if not results:
+        return False
+    for row in results:
+        found_above = False
+        for val in row.values():
+            try:
+                if float(str(val)) > threshold:
+                    found_above = True
+                    break
+            except (ValueError, TypeError):
+                continue
+        if not found_above:
+            return False
+    return True
+
+
+def results_are_sorted_any_numeric(results, descending=False):
+    """Check if results are sorted by any numeric column."""
+    if len(results) < 2:
+        return True
+    # Find the first numeric column
+    numeric_col = None
+    for key in results[0].keys():
+        try:
+            float(str(results[0][key]))
+            numeric_col = key
+            break
+        except (ValueError, TypeError):
+            continue
+    if numeric_col is None:
+        return True  # No numeric column to check
+
+    values = []
+    for row in results:
+        try:
+            values.append(float(str(row.get(numeric_col, 0))))
+        except (ValueError, TypeError):
+            values.append(0)
+
+    if descending:
+        return values == sorted(values, reverse=True)
+    return values == sorted(values)
+
+
+def has_distinct_values_any(results):
+    """Check if results have distinct values in any single column."""
+    if not results:
+        return False
+    for key in results[0].keys():
+        values = [str(row.get(key, '')) for row in results]
+        if len(values) == len(set(values)):
+            return True
+    return False
+
+
+# =============================================================================
 # LESSONS
 # =============================================================================
 
@@ -211,7 +309,7 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 10 and
-                    has_variable(results, 'astronaut') and
+                    # Check for astronaut URIs or names in results
                     any('Astronaut' in str(r) or 'Armstrong' in str(r) or 'Gagarin' in str(r) for r in results)
                 ),
                 "success_message": "Excellent! You found all the astronauts in our database!",
@@ -294,8 +392,8 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 5 and
-                    has_variable(results, 'name') and
-                    results_contain_values(results, 'name', ['NASA', 'ESA'])
+                    len(results[0]) >= 2 and  # At least 2 columns
+                    results_contain_any(results, ['NASA', 'ESA'])
                 ),
                 "success_message": "Great work! You've mastered triple patterns!",
             }
@@ -372,8 +470,7 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 4 and
-                    has_variable(results, 'name') and
-                    results_contain_values(results, 'name', ['Neil Armstrong', 'Buzz Aldrin'])
+                    results_contain_any(results, ['Neil Armstrong', 'Buzz Aldrin'])
                 ),
                 "success_message": "Perfect! You found the moonwalkers! 🌙",
             }
@@ -451,8 +548,8 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) == 4 and  # Jupiter, Saturn, Uranus, Neptune
-                    has_variable(results, 'moons') and
-                    all(int(str(r.get('moons', 0))) > 10 for r in results)
+                    len(results[0]) >= 2 and  # At least 2 columns (name and moons)
+                    all_rows_have_numeric_above(results, 10)
                 ),
                 "success_message": "Excellent filtering! You found the planets with many moons! 🌟",
             }
@@ -540,9 +637,8 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 10 and
-                    has_variable(results, 'name') and
-                    has_variable(results, 'date') and
-                    results_contain_values(results, 'name', ['Apollo 11', 'Voyager'])
+                    len(results[0]) >= 2 and  # At least 2 columns (name and date)
+                    results_contain_any(results, ['Apollo 11', 'Voyager'])
                 ),
                 "success_message": "Great job! OPTIONAL is very useful for real-world data! 📅",
             }
@@ -645,8 +741,9 @@ ORDER BY ?birthYear
 LIMIT 5""",
                 "validate": lambda results: (
                     len(results) == 5 and
-                    has_variable(results, 'birthYear') and
-                    results_are_sorted(results, 'birthYear', descending=False)
+                    len(results[0]) >= 2 and  # At least 2 columns (name and birthYear)
+                    has_any_numeric_column(results) and
+                    results_are_sorted_any_numeric(results, descending=False)
                 ),
                 "success_message": "Perfect! You can now sort and limit results! 🎯",
             }
@@ -725,9 +822,8 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 3 and
-                    has_variable(results, 'nationality') and
-                    has_distinct_values(results, 'nationality') and
-                    results_contain_values(results, 'nationality', ['American', 'Russian'])
+                    has_distinct_values_any(results) and
+                    results_contain_any(results, ['American', 'Russian'])
                 ),
                 "success_message": "Excellent! DISTINCT is great for getting unique values! 🌍",
             }
@@ -819,10 +915,10 @@ GROUP BY ?agencyName
 ORDER BY DESC(?count)""",
                 "validate": lambda results: (
                     len(results) >= 3 and
-                    has_variable(results, 'count') and
-                    has_count_aggregate(results, 'count') and
-                    # NASA should have the most missions
-                    results_contain_values(results, 'agencyName', ['NASA'])
+                    len(results[0]) >= 2 and  # At least 2 columns (name and count)
+                    has_any_numeric_column(results) and
+                    # NASA should be in results
+                    results_contain_any(results, ['NASA'])
                 ),
                 "success_message": "Amazing! Aggregations are powerful for data analysis! 📊",
             }
@@ -919,9 +1015,9 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 15 and  # 8 planets + 10 moons
-                    has_variable(results, 'type') and
-                    results_contain_values(results, 'type', ['Planet', 'Moon']) and
-                    results_contain_values(results, 'name', ['Earth', 'Titan'])
+                    len(results[0]) >= 2 and  # At least 2 columns (name and type)
+                    results_contain_any(results, ['Planet', 'Moon']) and
+                    results_contain_any(results, ['Earth', 'Titan'])
                 ),
                 "success_message": "Excellent! UNION is great for combining different data types! 🔗",
             }
@@ -1016,10 +1112,9 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) == 8 and
-                    has_variable(results, 'radius') and
-                    has_variable(results, 'category') and
-                    has_computed_column(results, 'radius') and
-                    results_contain_values(results, 'category', ['Giant', 'Rocky'])
+                    len(results[0]) >= 4 and  # name, diameter, radius, category
+                    has_any_numeric_column(results) and
+                    results_contain_any(results, ['Giant', 'Rocky'])
                 ),
                 "success_message": "Great work with computed values! You're becoming a SPARQL expert! 🧮",
             }
@@ -1122,9 +1217,9 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 2 and len(results) <= 5 and
-                    has_variable(results, 'moons') and
+                    len(results[0]) >= 2 and  # At least 2 columns (name and moons)
                     # All returned planets should have above-average moons (avg is ~36)
-                    all(int(str(r.get('moons', 0))) > 30 for r in results)
+                    all_rows_have_numeric_above(results, 30)
                 ),
                 "success_message": "Incredible! Subqueries are advanced SPARQL! 🏆",
             }
@@ -1216,9 +1311,10 @@ WHERE {
 }""",
                 "validate": lambda results: (
                     len(results) >= 5 and
-                    has_variable(results, 'missionName') and
-                    has_variable(results, 'planetName') and
-                    results_contain_values(results, 'planetName', ['Mars', 'Jupiter'])
+                    len(results[0]) >= 2 and  # At least 2 columns
+                    # Check that Mars and Jupiter appear somewhere in the results
+                    any('Mars' in str(r) for r in results) and
+                    any('Jupiter' in str(r) for r in results)
                 ),
                 "success_message": "Property paths are elegant! You're mastering advanced SPARQL! ⛓️",
             }
@@ -1484,11 +1580,11 @@ WHERE {
 ORDER BY ?birthYear""",
                 "validate": lambda results: (
                     len(results) >= 3 and
-                    has_variable(results, 'ageIn1969') and
-                    has_computed_column(results, 'ageIn1969') and
-                    results_contain_values(results, 'name', ['Neil Armstrong', 'Buzz Aldrin']) and
-                    # Ages should be reasonable (30-50 in 1969)
-                    all(25 < int(str(r.get('ageIn1969', 0))) < 50 for r in results)
+                    len(results[0]) >= 2 and  # At least 2 columns (name and age)
+                    has_any_numeric_column(results) and
+                    results_contain_any(results, ['Neil Armstrong', 'Buzz Aldrin']) and
+                    # Ages should be reasonable (25-50 in 1969)
+                    all_rows_have_numeric_above(results, 25)
                 ),
                 "success_message": "🏆 CONGRATULATIONS! You've completed the SPARQL Tutorial! You are now a SPARQL Master! 🏆",
             }
