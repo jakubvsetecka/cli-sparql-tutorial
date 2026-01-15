@@ -1,5 +1,86 @@
 """Lesson content for the SPARQL tutorial."""
 
+
+# =============================================================================
+# VALIDATION HELPER FUNCTIONS
+# =============================================================================
+
+def has_variable(results, var_name):
+    """Check if results contain a specific variable."""
+    if not results:
+        return False
+    return var_name in results[0]
+
+
+def has_count_aggregate(results, count_var='count'):
+    """Check if results contain a COUNT aggregate (numeric values)."""
+    if not results:
+        return False
+    for row in results:
+        val = row.get(count_var, '')
+        # COUNT should produce integers, not URIs
+        try:
+            int(str(val))
+            return True
+        except (ValueError, TypeError):
+            if ':' in str(val) or 'http' in str(val):
+                return False  # This is a URI, not a count
+    return False
+
+
+def results_contain_values(results, var_name, expected_values):
+    """Check if results contain expected values in a variable."""
+    if not results:
+        return False
+    found_values = {str(row.get(var_name, '')) for row in results}
+    return all(any(exp in val for val in found_values) for exp in expected_values)
+
+
+def results_are_sorted(results, var_name, descending=False):
+    """Check if results are sorted by a variable."""
+    if len(results) < 2:
+        return True
+    values = []
+    for row in results:
+        val = row.get(var_name, '')
+        try:
+            values.append(float(val))
+        except (ValueError, TypeError):
+            values.append(str(val))
+
+    if descending:
+        return values == sorted(values, reverse=True)
+    return values == sorted(values)
+
+
+def has_distinct_values(results, var_name):
+    """Check if all values in a variable are distinct."""
+    if not results:
+        return False
+    values = [str(row.get(var_name, '')) for row in results]
+    return len(values) == len(set(values))
+
+
+def has_computed_column(results, var_name):
+    """Check if results have a computed column with numeric values."""
+    if not results:
+        return False
+    if var_name not in results[0]:
+        return False
+    for row in results:
+        val = row.get(var_name, '')
+        try:
+            float(str(val))
+            return True
+        except (ValueError, TypeError):
+            continue
+    return False
+
+
+# =============================================================================
+# LESSONS
+# =============================================================================
+
 LESSONS = [
     # =========================================================================
     # LESSON 1: Introduction to SPARQL and RDF
@@ -55,7 +136,7 @@ This retrieves 5 random facts (triples) from our space knowledge graph!""",
                     "The ?s ?p ?o are variables that match any Subject, Predicate, Object",
                 ],
                 "solution": "SELECT * WHERE { ?s ?p ?o } LIMIT 5",
-                "validate": lambda results: len(results) > 0,
+                "validate": lambda results: len(results) > 0 and len(results) <= 5,
                 "success_message": "Welcome to SPARQL! You just ran your first query and retrieved data from the knowledge graph!",
             }
         ],
@@ -128,7 +209,11 @@ SELECT ?astronaut
 WHERE {
     ?astronaut rdf:type :Astronaut .
 }""",
-                "validate": lambda results: len(results) >= 10,
+                "validate": lambda results: (
+                    len(results) >= 10 and
+                    has_variable(results, 'astronaut') and
+                    any('Astronaut' in str(r) or 'Armstrong' in str(r) or 'Gagarin' in str(r) for r in results)
+                ),
                 "success_message": "Excellent! You found all the astronauts in our database!",
             }
         ],
@@ -207,7 +292,11 @@ WHERE {
     ?agency rdf:type :SpaceAgency .
     ?agency :name ?name .
 }""",
-                "validate": lambda results: len(results) >= 5 and any('NASA' in str(r) for r in results),
+                "validate": lambda results: (
+                    len(results) >= 5 and
+                    has_variable(results, 'name') and
+                    results_contain_values(results, 'name', ['NASA', 'ESA'])
+                ),
                 "success_message": "Great work! You've mastered triple patterns!",
             }
         ],
@@ -281,7 +370,11 @@ WHERE {
     ?astro :walkedOnMoon true .
     ?astro :name ?name .
 }""",
-                "validate": lambda results: len(results) >= 4 and any('Neil Armstrong' in str(r) or 'Buzz Aldrin' in str(r) for r in results),
+                "validate": lambda results: (
+                    len(results) >= 4 and
+                    has_variable(results, 'name') and
+                    results_contain_values(results, 'name', ['Neil Armstrong', 'Buzz Aldrin'])
+                ),
                 "success_message": "Perfect! You found the moonwalkers! 🌙",
             }
         ],
@@ -356,7 +449,11 @@ WHERE {
     ?planet :numberOfMoons ?moons .
     FILTER (?moons > 10)
 }""",
-                "validate": lambda results: len(results) >= 4,
+                "validate": lambda results: (
+                    len(results) == 4 and  # Jupiter, Saturn, Uranus, Neptune
+                    has_variable(results, 'moons') and
+                    all(int(str(r.get('moons', 0))) > 10 for r in results)
+                ),
                 "success_message": "Excellent filtering! You found the planets with many moons! 🌟",
             }
         ],
@@ -441,7 +538,12 @@ WHERE {
     ?mission :name ?name .
     OPTIONAL { ?mission :launchDate ?date . }
 }""",
-                "validate": lambda results: len(results) >= 10,
+                "validate": lambda results: (
+                    len(results) >= 10 and
+                    has_variable(results, 'name') and
+                    has_variable(results, 'date') and
+                    results_contain_values(results, 'name', ['Apollo 11', 'Voyager'])
+                ),
                 "success_message": "Great job! OPTIONAL is very useful for real-world data! 📅",
             }
         ],
@@ -541,7 +643,11 @@ WHERE {
 }
 ORDER BY ?birthYear
 LIMIT 5""",
-                "validate": lambda results: len(results) == 5,
+                "validate": lambda results: (
+                    len(results) == 5 and
+                    has_variable(results, 'birthYear') and
+                    results_are_sorted(results, 'birthYear', descending=False)
+                ),
                 "success_message": "Perfect! You can now sort and limit results! 🎯",
             }
         ],
@@ -617,7 +723,12 @@ WHERE {
     ?astro rdf:type :Astronaut .
     ?astro :nationality ?nationality .
 }""",
-                "validate": lambda results: len(results) >= 3 and len(results) == len(set(str(r) for r in results)),
+                "validate": lambda results: (
+                    len(results) >= 3 and
+                    has_variable(results, 'nationality') and
+                    has_distinct_values(results, 'nationality') and
+                    results_contain_values(results, 'nationality', ['American', 'Russian'])
+                ),
                 "success_message": "Excellent! DISTINCT is great for getting unique values! 🌍",
             }
         ],
@@ -706,7 +817,13 @@ WHERE {
 }
 GROUP BY ?agencyName
 ORDER BY DESC(?count)""",
-                "validate": lambda results: len(results) >= 3,
+                "validate": lambda results: (
+                    len(results) >= 3 and
+                    has_variable(results, 'count') and
+                    has_count_aggregate(results, 'count') and
+                    # NASA should have the most missions
+                    results_contain_values(results, 'agencyName', ['NASA'])
+                ),
                 "success_message": "Amazing! Aggregations are powerful for data analysis! 📊",
             }
         ],
@@ -800,7 +917,12 @@ WHERE {
     UNION
     { ?x rdf:type :Moon . ?x :name ?name . BIND("Moon" AS ?type) }
 }""",
-                "validate": lambda results: len(results) >= 15,
+                "validate": lambda results: (
+                    len(results) >= 15 and  # 8 planets + 10 moons
+                    has_variable(results, 'type') and
+                    results_contain_values(results, 'type', ['Planet', 'Moon']) and
+                    results_contain_values(results, 'name', ['Earth', 'Titan'])
+                ),
                 "success_message": "Excellent! UNION is great for combining different data types! 🔗",
             }
         ],
@@ -892,7 +1014,13 @@ WHERE {
     BIND (?diameter / 2 AS ?radius)
     BIND (IF(?diameter > 50000, "Giant", "Rocky") AS ?category)
 }""",
-                "validate": lambda results: len(results) == 8 and any('radius' in str(r).lower() or isinstance(r, dict) for r in results),
+                "validate": lambda results: (
+                    len(results) == 8 and
+                    has_variable(results, 'radius') and
+                    has_variable(results, 'category') and
+                    has_computed_column(results, 'radius') and
+                    results_contain_values(results, 'category', ['Giant', 'Rocky'])
+                ),
                 "success_message": "Great work with computed values! You're becoming a SPARQL expert! 🧮",
             }
         ],
@@ -992,7 +1120,12 @@ WHERE {
     }
     FILTER (?moons > ?avg)
 }""",
-                "validate": lambda results: len(results) >= 2 and len(results) <= 5,
+                "validate": lambda results: (
+                    len(results) >= 2 and len(results) <= 5 and
+                    has_variable(results, 'moons') and
+                    # All returned planets should have above-average moons (avg is ~36)
+                    all(int(str(r.get('moons', 0))) > 30 for r in results)
+                ),
                 "success_message": "Incredible! Subqueries are advanced SPARQL! 🏆",
             }
         ],
@@ -1081,7 +1214,12 @@ WHERE {
     ?mission :name ?missionName .
     ?mission :destination/:name ?planetName .
 }""",
-                "validate": lambda results: len(results) >= 5,
+                "validate": lambda results: (
+                    len(results) >= 5 and
+                    has_variable(results, 'missionName') and
+                    has_variable(results, 'planetName') and
+                    results_contain_values(results, 'planetName', ['Mars', 'Jupiter'])
+                ),
                 "success_message": "Property paths are elegant! You're mastering advanced SPARQL! ⛓️",
             }
         ],
@@ -1174,7 +1312,11 @@ WHERE {
     ?astro :name ?name .
     ?astro :birthYear ?year .
 }""",
-                "validate": lambda results: True,  # CONSTRUCT validation is different
+                "validate": lambda results: (
+                    # CONSTRUCT returns triples, check we got some
+                    len(results) >= 20 and  # 12 astronauts * 2 properties
+                    any('fullName' in str(r) or 'bornIn' in str(r) for r in results)
+                ),
                 "success_message": "Excellent! CONSTRUCT is powerful for data transformation! 🔨",
             }
         ],
@@ -1265,7 +1407,11 @@ ASK {
     ?mission rdf:type :Mission .
     ?mission :successful false .
 }""",
-                "validate": lambda results: True,  # ASK returns boolean
+                # ASK queries return a boolean result
+                "validate": lambda results: (
+                    len(results) == 1 and
+                    ('true' in str(results[0]).lower() or 'True' in str(results[0]))
+                ),
                 "success_message": "Perfect! You know all four SPARQL query forms! 🎓",
             }
         ],
@@ -1336,7 +1482,14 @@ WHERE {
     BIND(1969 - ?birthYear AS ?ageIn1969)
 }
 ORDER BY ?birthYear""",
-                "validate": lambda results: len(results) >= 3,
+                "validate": lambda results: (
+                    len(results) >= 3 and
+                    has_variable(results, 'ageIn1969') and
+                    has_computed_column(results, 'ageIn1969') and
+                    results_contain_values(results, 'name', ['Neil Armstrong', 'Buzz Aldrin']) and
+                    # Ages should be reasonable (30-50 in 1969)
+                    all(25 < int(str(r.get('ageIn1969', 0))) < 50 for r in results)
+                ),
                 "success_message": "🏆 CONGRATULATIONS! You've completed the SPARQL Tutorial! You are now a SPARQL Master! 🏆",
             }
         ],
