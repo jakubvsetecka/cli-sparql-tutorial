@@ -1,0 +1,415 @@
+@prefix : <http://space.example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================
+# SPACE EXPLORATION KNOWLEDGE GRAPH
+# A dataset for learning SPARQL
+# ============================================
+
+# --- CLASSES ---
+:Planet rdf:type rdfs:Class .
+:Moon rdf:type rdfs:Class .
+:Mission rdf:type rdfs:Class .
+:Astronaut rdf:type rdfs:Class .
+:SpaceAgency rdf:type rdfs:Class .
+:Spacecraft rdf:type rdfs:Class .
+
+# --- PROPERTIES ---
+:name rdf:type rdf:Property .
+:mass rdf:type rdf:Property .
+:diameter rdf:type rdf:Property .
+:distanceFromSun rdf:type rdf:Property .
+:numberOfMoons rdf:type rdf:Property .
+:hasRings rdf:type rdf:Property .
+:orbits rdf:type rdf:Property .
+:launchDate rdf:type rdf:Property .
+:launchedBy rdf:type rdf:Property .
+:destination rdf:type rdf:Property .
+:crewMember rdf:type rdf:Property .
+:nationality rdf:type rdf:Property .
+:birthYear rdf:type rdf:Property .
+:firstSpaceFlight rdf:type rdf:Property .
+:walkedOnMoon rdf:type rdf:Property .
+:founded rdf:type rdf:Property .
+:headquarters rdf:type rdf:Property .
+:usedSpacecraft rdf:type rdf:Property .
+:missionType rdf:type rdf:Property .
+:successful rdf:type rdf:Property .
+:discoveredBy rdf:type rdf:Property .
+
+# ============================================
+# PLANETS
+# ============================================
+
+:Mercury rdf:type :Planet ;
+    :name "Mercury" ;
+    :diameter 4879 ;
+    :distanceFromSun 57.9 ;
+    :numberOfMoons 0 ;
+    :hasRings false .
+
+:Venus rdf:type :Planet ;
+    :name "Venus" ;
+    :diameter 12104 ;
+    :distanceFromSun 108.2 ;
+    :numberOfMoons 0 ;
+    :hasRings false .
+
+:Earth rdf:type :Planet ;
+    :name "Earth" ;
+    :diameter 12756 ;
+    :distanceFromSun 149.6 ;
+    :numberOfMoons 1 ;
+    :hasRings false .
+
+:Mars rdf:type :Planet ;
+    :name "Mars" ;
+    :diameter 6792 ;
+    :distanceFromSun 227.9 ;
+    :numberOfMoons 2 ;
+    :hasRings false .
+
+:Jupiter rdf:type :Planet ;
+    :name "Jupiter" ;
+    :diameter 142984 ;
+    :distanceFromSun 778.5 ;
+    :numberOfMoons 95 ;
+    :hasRings true .
+
+:Saturn rdf:type :Planet ;
+    :name "Saturn" ;
+    :diameter 120536 ;
+    :distanceFromSun 1432.0 ;
+    :numberOfMoons 146 ;
+    :hasRings true .
+
+:Uranus rdf:type :Planet ;
+    :name "Uranus" ;
+    :diameter 51118 ;
+    :distanceFromSun 2867.0 ;
+    :numberOfMoons 28 ;
+    :hasRings true .
+
+:Neptune rdf:type :Planet ;
+    :name "Neptune" ;
+    :diameter 49528 ;
+    :distanceFromSun 4515.0 ;
+    :numberOfMoons 16 ;
+    :hasRings true .
+
+# ============================================
+# MOONS
+# ============================================
+
+:TheMoon rdf:type :Moon ;
+    :name "The Moon" ;
+    :diameter 3475 ;
+    :orbits :Earth .
+
+:Phobos rdf:type :Moon ;
+    :name "Phobos" ;
+    :diameter 22 ;
+    :orbits :Mars .
+
+:Deimos rdf:type :Moon ;
+    :name "Deimos" ;
+    :diameter 12 ;
+    :orbits :Mars .
+
+:Io rdf:type :Moon ;
+    :name "Io" ;
+    :diameter 3643 ;
+    :orbits :Jupiter .
+
+:Europa rdf:type :Moon ;
+    :name "Europa" ;
+    :diameter 3122 ;
+    :orbits :Jupiter .
+
+:Ganymede rdf:type :Moon ;
+    :name "Ganymede" ;
+    :diameter 5268 ;
+    :orbits :Jupiter .
+
+:Callisto rdf:type :Moon ;
+    :name "Callisto" ;
+    :diameter 4821 ;
+    :orbits :Jupiter .
+
+:Titan rdf:type :Moon ;
+    :name "Titan" ;
+    :diameter 5150 ;
+    :orbits :Saturn .
+
+:Enceladus rdf:type :Moon ;
+    :name "Enceladus" ;
+    :diameter 504 ;
+    :orbits :Saturn .
+
+:Triton rdf:type :Moon ;
+    :name "Triton" ;
+    :diameter 2707 ;
+    :orbits :Neptune .
+
+# ============================================
+# SPACE AGENCIES
+# ============================================
+
+:NASA rdf:type :SpaceAgency ;
+    :name "NASA" ;
+    :founded 1958 ;
+    :headquarters "Washington D.C., USA" .
+
+:ESA rdf:type :SpaceAgency ;
+    :name "ESA" ;
+    :founded 1975 ;
+    :headquarters "Paris, France" .
+
+:Roscosmos rdf:type :SpaceAgency ;
+    :name "Roscosmos" ;
+    :founded 1992 ;
+    :headquarters "Moscow, Russia" .
+
+:JAXA rdf:type :SpaceAgency ;
+    :name "JAXA" ;
+    :founded 2003 ;
+    :headquarters "Tokyo, Japan" .
+
+:SpaceX rdf:type :SpaceAgency ;
+    :name "SpaceX" ;
+    :founded 2002 ;
+    :headquarters "Hawthorne, California, USA" .
+
+:CNSA rdf:type :SpaceAgency ;
+    :name "CNSA" ;
+    :founded 1993 ;
+    :headquarters "Beijing, China" .
+
+# ============================================
+# ASTRONAUTS
+# ============================================
+
+:NeilArmstrong rdf:type :Astronaut ;
+    :name "Neil Armstrong" ;
+    :nationality "American" ;
+    :birthYear 1930 ;
+    :firstSpaceFlight 1966 ;
+    :walkedOnMoon true .
+
+:BuzzAldrin rdf:type :Astronaut ;
+    :name "Buzz Aldrin" ;
+    :nationality "American" ;
+    :birthYear 1930 ;
+    :firstSpaceFlight 1966 ;
+    :walkedOnMoon true .
+
+:MichaelCollins rdf:type :Astronaut ;
+    :name "Michael Collins" ;
+    :nationality "American" ;
+    :birthYear 1930 ;
+    :firstSpaceFlight 1966 ;
+    :walkedOnMoon false .
+
+:YuriGagarin rdf:type :Astronaut ;
+    :name "Yuri Gagarin" ;
+    :nationality "Russian" ;
+    :birthYear 1934 ;
+    :firstSpaceFlight 1961 ;
+    :walkedOnMoon false .
+
+:ValentinaTereshkova rdf:type :Astronaut ;
+    :name "Valentina Tereshkova" ;
+    :nationality "Russian" ;
+    :birthYear 1937 ;
+    :firstSpaceFlight 1963 ;
+    :walkedOnMoon false .
+
+:JohnGlenn rdf:type :Astronaut ;
+    :name "John Glenn" ;
+    :nationality "American" ;
+    :birthYear 1921 ;
+    :firstSpaceFlight 1962 ;
+    :walkedOnMoon false .
+
+:SallyRide rdf:type :Astronaut ;
+    :name "Sally Ride" ;
+    :nationality "American" ;
+    :birthYear 1951 ;
+    :firstSpaceFlight 1983 ;
+    :walkedOnMoon false .
+
+:ChrisHadfield rdf:type :Astronaut ;
+    :name "Chris Hadfield" ;
+    :nationality "Canadian" ;
+    :birthYear 1959 ;
+    :firstSpaceFlight 1995 ;
+    :walkedOnMoon false .
+
+:TimPeake rdf:type :Astronaut ;
+    :name "Tim Peake" ;
+    :nationality "British" ;
+    :birthYear 1972 ;
+    :firstSpaceFlight 2015 ;
+    :walkedOnMoon false .
+
+:AlanShepard rdf:type :Astronaut ;
+    :name "Alan Shepard" ;
+    :nationality "American" ;
+    :birthYear 1923 ;
+    :firstSpaceFlight 1961 ;
+    :walkedOnMoon true .
+
+:PeteConrad rdf:type :Astronaut ;
+    :name "Pete Conrad" ;
+    :nationality "American" ;
+    :birthYear 1930 ;
+    :firstSpaceFlight 1965 ;
+    :walkedOnMoon true .
+
+:EugeneKranz rdf:type :Astronaut ;
+    :name "Eugene Cernan" ;
+    :nationality "American" ;
+    :birthYear 1934 ;
+    :firstSpaceFlight 1966 ;
+    :walkedOnMoon true .
+
+# ============================================
+# SPACECRAFT
+# ============================================
+
+:Apollo rdf:type :Spacecraft ;
+    :name "Apollo Command Module" .
+
+:LunarModule rdf:type :Spacecraft ;
+    :name "Lunar Module" .
+
+:SpaceShuttle rdf:type :Spacecraft ;
+    :name "Space Shuttle" .
+
+:Soyuz rdf:type :Spacecraft ;
+    :name "Soyuz" .
+
+:Vostok rdf:type :Spacecraft ;
+    :name "Vostok" .
+
+:DragonCrew rdf:type :Spacecraft ;
+    :name "Crew Dragon" .
+
+:Falcon9 rdf:type :Spacecraft ;
+    :name "Falcon 9" .
+
+# ============================================
+# MISSIONS
+# ============================================
+
+:Apollo11 rdf:type :Mission ;
+    :name "Apollo 11" ;
+    :launchDate "1969-07-16"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :TheMoon ;
+    :crewMember :NeilArmstrong, :BuzzAldrin, :MichaelCollins ;
+    :usedSpacecraft :Apollo, :LunarModule ;
+    :missionType "Crewed Lunar Landing" ;
+    :successful true .
+
+:Apollo13 rdf:type :Mission ;
+    :name "Apollo 13" ;
+    :launchDate "1970-04-11"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :TheMoon ;
+    :usedSpacecraft :Apollo, :LunarModule ;
+    :missionType "Crewed Lunar Landing" ;
+    :successful false .
+
+:Vostok1 rdf:type :Mission ;
+    :name "Vostok 1" ;
+    :launchDate "1961-04-12"^^xsd:date ;
+    :launchedBy :Roscosmos ;
+    :destination :Earth ;
+    :crewMember :YuriGagarin ;
+    :usedSpacecraft :Vostok ;
+    :missionType "Crewed Orbital" ;
+    :successful true .
+
+:Voyager1Mission rdf:type :Mission ;
+    :name "Voyager 1" ;
+    :launchDate "1977-09-05"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Jupiter, :Saturn ;
+    :missionType "Interplanetary Probe" ;
+    :successful true .
+
+:Voyager2Mission rdf:type :Mission ;
+    :name "Voyager 2" ;
+    :launchDate "1977-08-20"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Jupiter, :Saturn, :Uranus, :Neptune ;
+    :missionType "Interplanetary Probe" ;
+    :successful true .
+
+:CuriosityMission rdf:type :Mission ;
+    :name "Curiosity Rover" ;
+    :launchDate "2011-11-26"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Mars ;
+    :missionType "Mars Rover" ;
+    :successful true .
+
+:PerseveranceMission rdf:type :Mission ;
+    :name "Perseverance Rover" ;
+    :launchDate "2020-07-30"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Mars ;
+    :missionType "Mars Rover" ;
+    :successful true .
+
+:CassiniMission rdf:type :Mission ;
+    :name "Cassini-Huygens" ;
+    :launchDate "1997-10-15"^^xsd:date ;
+    :launchedBy :NASA, :ESA ;
+    :destination :Saturn, :Titan ;
+    :missionType "Planetary Orbiter" ;
+    :successful true .
+
+:JunoMission rdf:type :Mission ;
+    :name "Juno" ;
+    :launchDate "2011-08-05"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Jupiter ;
+    :missionType "Planetary Orbiter" ;
+    :successful true .
+
+:NewHorizonsMission rdf:type :Mission ;
+    :name "New Horizons" ;
+    :launchDate "2006-01-19"^^xsd:date ;
+    :launchedBy :NASA ;
+    :missionType "Interplanetary Probe" ;
+    :successful true .
+
+:ISS_Expedition1 rdf:type :Mission ;
+    :name "ISS Expedition 1" ;
+    :launchDate "2000-10-31"^^xsd:date ;
+    :launchedBy :NASA, :Roscosmos ;
+    :destination :Earth ;
+    :missionType "Space Station" ;
+    :successful true .
+
+:STS1 rdf:type :Mission ;
+    :name "STS-1" ;
+    :launchDate "1981-04-12"^^xsd:date ;
+    :launchedBy :NASA ;
+    :destination :Earth ;
+    :usedSpacecraft :SpaceShuttle ;
+    :missionType "Space Shuttle" ;
+    :successful true .
+
+:CrewDragon_Demo2 rdf:type :Mission ;
+    :name "Crew Dragon Demo-2" ;
+    :launchDate "2020-05-30"^^xsd:date ;
+    :launchedBy :SpaceX, :NASA ;
+    :destination :Earth ;
+    :usedSpacecraft :DragonCrew, :Falcon9 ;
+    :missionType "Crewed Orbital" ;
+    :successful true .
