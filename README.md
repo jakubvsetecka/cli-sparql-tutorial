@@ -1,0 +1,112 @@
+# SPARQL Tutorial CLI
+
+An interactive command-line tutorial for learning SPARQL, the query language for RDF graph databases.
+
+```
+  ██████  ██▓███   ▄▄▄       ██▀███    ▄████   ██▓
+▒██    ▒ ▓██░  ██▒▒████▄    ▓██ ▒ ██▒ ██▒ ▀█▒ ▓██▒
+░ ▓██▄   ▓██░ ██▓▒▒██  ▀█▄  ▓██ ░▄█ ▒▒██░▄▄▄░ ▒██░
+  ▒   ██▒▒██▄█▓▒ ▒░██▄▄▄▄██ ▒██▀▀█▄  ░▓█  ██▓ ▒██░
+▒██████▒▒▒██▒ ░  ░ ▓█   ▓██▒░██▓ ▒██▒░▒▓███▀▒ ░██████▒
+```
+
+## Features
+
+- **16 Progressive Lessons** - From basic SELECT queries to advanced subqueries and property paths
+- **Interactive Exercises** - Practice each concept with hands-on exercises
+- **Built-in Knowledge Graph** - Explore a space exploration dataset with planets, astronauts, missions, and more
+- **Syntax Highlighting** - Full SPARQL syntax highlighting in the editor
+- **Smart Hints** - 3-level progressive hint system when you get stuck
+- **Friendly Error Messages** - Clear explanations of syntax errors
+- **Progress Tracking** - Your progress is saved between sessions
+- **Rich Text Editor** - Full cursor navigation, tab indentation, and query history
+
+## Installation
+
+```bash
+git clone https://github.com/yourusername/cli-sparql-tutorial.git
+cd cli-sparql-tutorial
+./run.sh
+```
+
+Or manually:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python sparql_tutorial.py
+```
+
+## What You'll Learn
+
+### Beginner
+1. Introduction to SPARQL and RDF
+2. Basic SELECT Queries
+3. Triple Patterns (Subject-Predicate-Object)
+4. Multiple Patterns and Joins
+5. FILTER - Constraining Results
+6. OPTIONAL - Handling Missing Data
+7. ORDER BY and LIMIT
+
+### Intermediate
+8. DISTINCT - Removing Duplicates
+9. COUNT and GROUP BY - Aggregations
+10. UNION - Combining Patterns
+11. BIND and Expressions - Computed Values
+
+### Advanced
+12. Subqueries - Nested Queries
+13. Property Paths - Following Relationships
+14. CONSTRUCT - Building New Graphs
+15. ASK and DESCRIBE Queries
+16. Final Challenge
+
+## The Dataset
+
+The tutorial uses a space exploration knowledge graph containing:
+
+| Entity | Count | Properties |
+|--------|-------|------------|
+| Planets | 8 | name, diameter, distance from sun, moons, rings |
+| Moons | 10 | name, diameter, orbits |
+| Astronauts | 12 | name, nationality, birth year, moonwalker status |
+| Missions | 13 | name, launch date, destination, crew, success |
+| Space Agencies | 6 | name, founded, headquarters |
+| Spacecraft | 7 | name |
+
+## Editor Controls
+
+| Key | Action |
+|-----|--------|
+| `↑ ↓ ← →` | Move cursor |
+| `Tab` | Insert indentation |
+| `Enter` | New line |
+| `Ctrl+Enter` or `Esc, Enter` | Execute query |
+| `Ctrl+↑/↓` | Browse query history |
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `hint` | Get a progressive hint |
+| `solution` | Show the solution |
+| `skip` | Skip current exercise |
+| `menu` | Return to main menu |
+| `quit` | Exit tutorial |
+
+## Requirements
+
+- Python 3.8+
+- Terminal with Unicode support
+
+## Dependencies
+
+- `rdflib` - RDF graph library and SPARQL engine
+- `rich` - Beautiful terminal formatting
+- `prompt_toolkit` - Advanced input handling
+- `pygments` - Syntax highlighting
+
+## License
+
+MIT
