@@ -333,24 +333,21 @@ class SHACLEngine:
         fixes = []
         fixed_count = 0
         
-        # Create a copy of the data graph for modifications
-        fixed_graph = Graph()
-        for triple in self.data_graph:
-            fixed_graph.add(triple)
-        
+        # Currently this method only reports potential fixes without modifying the graph.
         for violation in violations:
-            # Try to fix simple violations
+            # Try to detect simple violations that could be auto-fixed
             if "cannot be negative" in violation["message"].lower():
-                # Fix negative values by setting to 0
-                if violation["value"] and violation["property"]:
+                # Example: negative values could be set to 0 in a real implementation
+                if violation.get("value") is not None and violation.get("property"):
                     # This is a simplified example - in production would need proper triple manipulation
-                    fixes.append(f"Would fix negative value for {violation['property']} on {violation['focus_node']}")
-                    fixed_count += 1
+                    fixes.append(
+                        f"Would fix negative value for {violation['property']} on {violation['focus_node']}"
+                    )
         
         return {
             "fixed_count": fixed_count,
             "fixes": fixes,
-            "updated_graph": fixed_graph
+            "updated_graph": self.data_graph
         }
 
     def get_stats(self) -> dict:
