@@ -102,10 +102,13 @@ class SHACLEngine:
             
         Returns:
             dict with keys:
-                - conforms: bool - whether validation passed
-                - violations: list - list of violation dictionaries
-                - results_graph: Graph - the validation results graph
-                - results_text: str - human-readable validation results
+                - conforms: bool or None - whether validation passed; None if validation failed
+                - violations: list - list of violation dictionaries (empty on validation failure)
+                - violation_count: int - number of violations found
+                - results_graph: Graph or None - the validation results graph; None on failure
+                - results_text: str or None - human-readable validation results; None on failure
+                - success: bool - True if validation executed successfully, False on internal error
+                - error: str or None - error message if validation failed internally, otherwise None
         """
         try:
             # Perform validation
