@@ -31,7 +31,10 @@ class SHACLEngine:
             # Default to the knowledge graph
             data_file = Path(__file__).parent.parent / "data" / "knowledge_graph.ttl"
             self.data_graph = Graph()
-            self.data_graph.parse(data_file, format="turtle")
+            if os.path.exists(data_file):
+                self.data_graph.parse(data_file, format="turtle")
+            else:
+                raise FileNotFoundError(f"Data file not found: {data_file}")
 
         # Define namespaces
         self.SPACE = Namespace("http://space.example.org/")
