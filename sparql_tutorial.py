@@ -428,9 +428,25 @@ class SPARQLTutorial:
         
         shape = get_multiline_input("Enter SHACL shape")
         
+        # Handle special control tokens from get_multiline_input
         if shape == "__menu__":
             clear_screen()
             console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+        if shape == "__quit__":
+            clear_screen()
+            console.print(GOODBYE)
+            sys.exit(0)
+        if shape == "__help__":
+            print_query_input_help()
+            wait_for_enter()
+            # Re-enter SHACL shape input after showing help
+            self._add_shacl_shape()
+            return
+        if shape == "__clear__":
+            clear_screen()
+            # Re-enter SHACL shape input after clearing the screen
+            self._add_shacl_shape()
             return
 
         if shape == "__help__":
