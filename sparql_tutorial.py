@@ -280,6 +280,8 @@ class SPARQLTutorial:
             console.print("  [green]examples[/green] - Load example SHACL shapes")
             console.print("  [green]clear[/green]    - Clear all loaded shapes")
             console.print("  [green]stats[/green]    - Show current shapes statistics")
+            console.print("  [green]help[/green]     - Show SHACL commands and guidance")
+            console.print("  [green]quit[/green]     - Exit the tutorial")
             console.print("  [green]menu[/green]     - Return to main menu")
             console.print()
 
