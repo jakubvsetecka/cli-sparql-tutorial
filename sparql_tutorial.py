@@ -439,42 +439,44 @@ class SPARQLTutorial:
             clear_screen()
             console.print(GOODBYE)
             sys.exit(0)
-        if shape == "__help__":
-            print_query_input_help()
-            wait_for_enter()
-            # Re-enter SHACL shape input after showing help
-            self._add_shacl_shape()
-            return
-        if shape == "__clear__":
+        while True:
             clear_screen()
-            # Re-enter SHACL shape input after clearing the screen
-            self._add_shacl_shape()
-            return
+            console.print("\n[bold cyan]═══ ADD SHACL SHAPE ═══[/bold cyan]\n")
+            console.print("[dim]Enter your SHACL shape in Turtle format.[/dim]")
+            console.print("[dim]Type your shape, then press Ctrl+Enter or Esc,Enter to submit.[/dim]\n")
+            
+            shape = get_multiline_input("Enter SHACL shape")
+            
+            if shape == "__menu__":
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                return
 
-        if shape == "__help__":
-            self._show_shacl_help()
-            return self._add_shacl_shape()
+            if shape == "__help__":
+                self._show_shacl_help()
+                # Re-prompt without recursion
+                continue
 
-        if not shape.strip():
-            print_warning("No shape entered")
+            if not shape.strip():
+                print_warning("No shape entered")
+                wait_for_enter()
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                return
+            
+            success, error = self.shacl_engine.add_shape_from_text(shape)
+            
+            if success:
+                print_success("SHACL shape added successfully!")
+                stats = self.shacl_engine.get_stats()
+                console.print(f"\n[dim]Total shapes loaded: {stats['total_shapes']}[/dim]")
+            else:
+                print_error(f"Failed to add shape:\n{error}")
+            
             wait_for_enter()
             clear_screen()
             console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
             return
-        
-        success, error = self.shacl_engine.add_shape_from_text(shape)
-        
-        if success:
-            print_success("SHACL shape added successfully!")
-            stats = self.shacl_engine.get_stats()
-            console.print(f"\n[dim]Total shapes loaded: {stats['total_shapes']}[/dim]")
-        else:
-            print_error(f"Failed to add shape:\n{error}")
-        
-        wait_for_enter()
-        clear_screen()
-        console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
-
     def _validate_with_shacl(self):
         """Validate the data graph against loaded SHACL shapes."""
         stats = self.shacl_engine.get_stats()
