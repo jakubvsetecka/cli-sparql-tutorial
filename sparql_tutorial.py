@@ -432,7 +432,11 @@ class SPARQLTutorial:
             clear_screen()
             console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
             return
-        
+
+        if shape == "__help__":
+            self._show_shacl_help()
+            return self._add_shacl_shape()
+
         if not shape.strip():
             print_warning("No shape entered")
             wait_for_enter()
