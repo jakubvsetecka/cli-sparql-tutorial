@@ -282,7 +282,7 @@ def main():
         
         console.print("\n[bold green]═══ ALL DEMOS COMPLETED ═══[/bold green]\n")
         console.print("[cyan]To explore interactively, run:[/cyan]")
-        console.print("  python sparql_tutorial.py")
+        console.print("  python3 sparql_tutorial.py")
         console.print("\n[cyan]Then select option [S] for SHACL mode![/cyan]\n")
         
     except KeyboardInterrupt:

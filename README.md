@@ -36,7 +36,7 @@ Or manually:
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python sparql_tutorial.py
+python3 sparql_tutorial.py
 ```
 
 ## What You'll Learn
@@ -90,7 +90,7 @@ In addition to learning SPARQL queries, you can now explore SHACL (Shapes Constr
 
 ### Quick Start
 
-1. Run the tutorial: `python sparql_tutorial.py`
+1. Run the tutorial: `python3 sparql_tutorial.py`
 2. Select `[S] SHACL constraints mode` from the main menu
 3. Try `examples` to load pre-built shapes
 4. Use `validate` to check data quality
@@ -108,7 +108,7 @@ For detailed documentation, see [SHACL_GUIDE.md](SHACL_GUIDE.md).
 
 To see demos of the SHACL functionality, run:
 ```bash
-python demo_shacl.py
+python3 demo_shacl.py
 ```
 
 ## Editor Controls

@@ -122,7 +122,7 @@ A multi-constraint shape validating mission data quality.
 
 ### Accessing SHACL Mode
 
-1. Start the tutorial: `python sparql_tutorial.py`
+1. Start the tutorial: `python3 sparql_tutorial.py`
 2. From the main menu, select `[S] SHACL constraints mode`
 
 ### Available Commands

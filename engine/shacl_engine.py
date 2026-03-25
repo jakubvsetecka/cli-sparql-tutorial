@@ -68,7 +68,7 @@ class SHACLEngine:
             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
             """
-            shape_text = standard_prefixes + shape_text
+                shape_text = standard_prefixes + shape_text
 
             # Parse into a temporary graph
             temp_graph = Graph()
@@ -355,13 +355,14 @@ class SHACLEngine:
 
     def get_stats(self) -> dict:
         """Get statistics about loaded shapes."""
-        # Count shape types
+        # Count shape types (NodeShape, PropertyShape, or generic Shape)
         query = """
         PREFIX sh: <http://www.w3.org/ns/shacl#>
-        
+
         SELECT (COUNT(DISTINCT ?shape) as ?count)
         WHERE {
-            ?shape a sh:NodeShape .
+            VALUES ?type { sh:NodeShape sh:PropertyShape sh:Shape }
+            ?shape a ?type .
         }
         """
         
