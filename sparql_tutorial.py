@@ -541,10 +541,6 @@ class SPARQLTutorial:
                 
                 console.print()
         
-        # Ask about auto-fix (demo feature)
-        if not result["conforms"] and result["violations"]:
-            console.print("[dim]Note: Auto-fix feature is available but limited to demonstration purposes.[/dim]")
-        
         wait_for_enter()
         clear_screen()
         console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
