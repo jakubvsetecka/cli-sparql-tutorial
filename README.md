@@ -33,7 +33,7 @@ cd cli-sparql-tutorial
 Or manually:
 
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python3 sparql_tutorial.py
