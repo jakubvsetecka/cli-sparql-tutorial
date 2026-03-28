@@ -29,6 +29,7 @@ from ui.components import (
     print_data_preview, confirm
 )
 from engine.sparql_engine import SPARQLEngine
+from engine.shacl_engine import SHACLEngine
 from engine.validator import QueryValidator, HintSystem
 from lessons.content import LESSONS, DATA_DESCRIPTION
 
@@ -40,6 +41,7 @@ class SPARQLTutorial:
         """Initialize the tutorial."""
         self.console = console
         self.engine = None
+        self.shacl_engine = None
         self.validator = QueryValidator()
         self.hint_system = HintSystem()
         self.progress_file = Path(__file__).parent / ".progress.json"
@@ -72,6 +74,20 @@ class SPARQLTutorial:
                 return True
             except FileNotFoundError as e:
                 print_error(f"Could not load knowledge graph: {e}")
+                return False
+        return True
+
+    def _init_shacl_engine(self):
+        """Initialize the SHACL engine."""
+        if self.shacl_engine is None:
+            try:
+                # Initialize SHACL engine with the same data as SPARQL engine
+                if not self._init_engine():
+                    return False
+                self.shacl_engine = SHACLEngine(data_graph=self.engine.graph)
+                return True
+            except Exception as e:
+                print_error(f"Could not initialize SHACL engine: {e}")
                 return False
         return True
 
@@ -127,6 +143,7 @@ class SPARQLTutorial:
             console.print("\n[bold]Options:[/bold]\n")
             console.print("  [D] View available data")
             console.print("  [F] Free query mode (sandbox)")
+            console.print("  [S] SHACL constraints mode")
             console.print("  [R] Reset progress")
             console.print("  [Q] Quit")
 
@@ -143,6 +160,10 @@ class SPARQLTutorial:
 
             if choice.lower() == 'f':
                 self.free_query_mode()
+                continue
+
+            if choice.lower() == 's':
+                self.shacl_free_mode()
                 continue
 
             if choice.lower() == 'r':
@@ -236,6 +257,295 @@ class SPARQLTutorial:
                 print_error(result["error"])
 
             console.print()
+
+    def shacl_free_mode(self):
+        """SHACL constraints sandbox for creating and validating shapes."""
+        clear_screen()
+        console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+        console.print("[dim]Create and validate SHACL constraints against the space knowledge graph.[/dim]")
+        console.print("[dim]Type 'menu' to return to main menu, 'help' for commands.[/dim]\n")
+
+        if not self._init_shacl_engine():
+            wait_for_enter()
+            return
+
+        # Show initial stats
+        stats = self.shacl_engine.get_stats()
+        console.print(f"[cyan]Data loaded:[/cyan] {stats['total_data_triples']} triples\n")
+
+        while True:
+            console.print("[bold]SHACL Commands:[/bold]")
+            console.print("  [green]add[/green]      - Add a SHACL shape constraint")
+            console.print("  [green]validate[/green] - Validate data against loaded shapes")
+            console.print("  [green]examples[/green] - Load example SHACL shapes")
+            console.print("  [green]clear[/green]    - Clear all loaded shapes")
+            console.print("  [green]stats[/green]    - Show current shapes statistics")
+            console.print("  [green]help[/green]     - Show SHACL commands and guidance")
+            console.print("  [green]quit[/green]     - Exit the tutorial")
+            console.print("  [green]menu[/green]     - Return to main menu")
+            console.print()
+
+            command = console.input("[bold yellow]Enter command: [/bold yellow]").strip().lower()
+
+            if command == "menu":
+                return
+            
+            if command == "quit":
+                self.show_goodbye()
+                sys.exit(0)
+
+            if command == "help":
+                self._show_shacl_help()
+                continue
+
+            if command == "stats":
+                stats = self.shacl_engine.get_stats()
+                console.print(f"\n[cyan]Current Statistics:[/cyan]")
+                console.print(f"  Loaded shapes: {stats['total_shapes']}")
+                console.print(f"  Shape triples: {stats['total_shape_triples']}")
+                console.print(f"  Data triples: {stats['total_data_triples']}")
+                console.print()
+                wait_for_enter()
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                continue
+
+            if command == "clear":
+                self.shacl_engine.clear_shapes()
+                print_success("All SHACL shapes cleared!")
+                wait_for_enter()
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                continue
+
+            if command == "examples":
+                self._load_example_shapes()
+                continue
+
+            if command == "add":
+                self._add_shacl_shape()
+                continue
+
+            if command == "validate":
+                self._validate_with_shacl()
+                continue
+
+            print_warning("Unknown command. Type 'help' for available commands.")
+            console.print()
+
+    def _show_shacl_help(self):
+        """Show help information for SHACL mode."""
+        clear_screen()
+        console.print("\n[bold cyan]═══ SHACL HELP ═══[/bold cyan]\n")
+        
+        console.print("[bold]What is SHACL?[/bold]")
+        console.print("SHACL (Shapes Constraint Language) validates RDF graphs against constraints.")
+        console.print("You can define 'shapes' that describe what valid data should look like.\n")
+        
+        console.print("[bold]Example SHACL Shape:[/bold]\n")
+        example = """@prefix : <http://space.example.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:PlanetShape a sh:NodeShape ;
+    sh:targetClass :Planet ;
+    sh:property [
+        sh:path :diameter ;
+        sh:minInclusive 1000 ;
+        sh:message "Planet diameter must be >= 1000 km" ;
+    ] ."""
+        
+        from ui.components import print_sparql_syntax
+        print_sparql_syntax(example)
+        
+        console.print("\n[bold]Common Constraints:[/bold]")
+        console.print("  • sh:minCount, sh:maxCount - Cardinality")
+        console.print("  • sh:datatype - Data type validation")
+        console.print("  • sh:minInclusive, sh:maxInclusive - Value ranges")
+        console.print("  • sh:pattern - Regex patterns")
+        console.print("  • sh:nodeKind - IRI, Literal, or BlankNode")
+        console.print()
+        
+        wait_for_enter()
+        clear_screen()
+        console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+
+    def _load_example_shapes(self):
+        """Load example SHACL shapes."""
+        clear_screen()
+        console.print("\n[bold cyan]═══ EXAMPLE SHACL SHAPES ═══[/bold cyan]\n")
+        
+        examples = self.shacl_engine.get_example_shapes()
+        
+        console.print("[bold]Available Examples:[/bold]\n")
+        for i, (name, shape) in enumerate(examples.items(), 1):
+            console.print(f"  [{i}] {name.replace('_', ' ').title()}")
+        
+        console.print("  [A] Load all examples")
+        console.print("  [C] Cancel\n")
+        
+        choice = console.input("[bold yellow]Select example(s): [/bold yellow]").strip().lower()
+        
+        if choice == 'c':
+            clear_screen()
+            console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+        
+        if choice == 'a':
+            # Load all examples
+            for name, shape in examples.items():
+                success, error = self.shacl_engine.add_shape_from_text(shape)
+                if not success:
+                    print_error(f"Error loading {name}: {error}")
+            print_success(f"Loaded all {len(examples)} example shapes!")
+        else:
+            try:
+                idx = int(choice) - 1
+                name = list(examples.keys())[idx]
+                shape = examples[name]
+                
+                console.print(f"\n[bold]Loading: {name.replace('_', ' ').title()}[/bold]\n")
+                from ui.components import print_sparql_syntax
+                print_sparql_syntax(shape)
+                console.print()
+                
+                success, error = self.shacl_engine.add_shape_from_text(shape)
+                if success:
+                    print_success(f"Shape '{name}' loaded successfully!")
+                else:
+                    print_error(f"Error: {error}")
+            except (ValueError, IndexError):
+                print_warning("Invalid selection")
+        
+        wait_for_enter()
+        clear_screen()
+        console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+
+    def _add_shacl_shape(self):
+        """Add a custom SHACL shape."""
+        clear_screen()
+        console.print("\n[bold cyan]═══ ADD SHACL SHAPE ═══[/bold cyan]\n")
+        console.print("[dim]Enter your SHACL shape in Turtle format.[/dim]")
+        console.print("[dim]Type your shape, then press Ctrl+Enter or Esc,Enter to submit.[/dim]\n")
+        
+        shape = get_multiline_input("Enter SHACL shape")
+        
+        # Handle special control tokens from get_multiline_input
+        if shape == "__menu__":
+            clear_screen()
+            console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+        if shape == "__quit__":
+            clear_screen()
+            console.print(GOODBYE)
+            sys.exit(0)
+        while True:
+            clear_screen()
+            console.print("\n[bold cyan]═══ ADD SHACL SHAPE ═══[/bold cyan]\n")
+            console.print("[dim]Enter your SHACL shape in Turtle format.[/dim]")
+            console.print("[dim]Type your shape, then press Ctrl+Enter or Esc,Enter to submit.[/dim]\n")
+            
+            shape = get_multiline_input("Enter SHACL shape")
+            
+            if shape == "__menu__":
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                return
+
+            if shape == "__help__":
+                self._show_shacl_help()
+                # Re-prompt without recursion
+                continue
+
+            if not shape.strip():
+                print_warning("No shape entered")
+                wait_for_enter()
+                clear_screen()
+                console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+                return
+            
+            success, error = self.shacl_engine.add_shape_from_text(shape)
+            
+            if success:
+                print_success("SHACL shape added successfully!")
+                stats = self.shacl_engine.get_stats()
+                console.print(f"\n[dim]Total shapes loaded: {stats['total_shapes']}[/dim]")
+            else:
+                print_error(f"Failed to add shape:\n{error}")
+            
+            wait_for_enter()
+            clear_screen()
+            console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+    def _validate_with_shacl(self):
+        """Validate the data graph against loaded SHACL shapes."""
+        stats = self.shacl_engine.get_stats()
+        
+        if stats['total_shapes'] == 0:
+            print_warning("No SHACL shapes loaded! Use 'add' or 'examples' to load shapes first.")
+            wait_for_enter()
+            clear_screen()
+            console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+        
+        clear_screen()
+        console.print("\n[bold cyan]═══ VALIDATING DATA ═══[/bold cyan]\n")
+        console.print(f"[dim]Validating {stats['total_data_triples']} triples against {stats['total_shapes']} shape(s)...[/dim]\n")
+        
+        # Perform validation
+        result = self.shacl_engine.validate()
+        
+        if not result["success"]:
+            print_error(f"Validation failed: {result['error']}")
+            wait_for_enter()
+            clear_screen()
+            console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
+            return
+        
+        # Display results
+        if result["conforms"]:
+            console.print("[bold green]✓ VALIDATION PASSED[/bold green]")
+            console.print("\n[green]All data conforms to the SHACL constraints![/green]\n")
+        else:
+            console.print("[bold red]✗ VALIDATION FAILED[/bold red]")
+            console.print(f"\n[red]Found {result['violation_count']} violation(s):[/red]\n")
+            
+            # Display violations in a table
+            if result["violations"]:
+                from rich.table import Table
+                
+                table = Table(title="SHACL Violations", box=box.ROUNDED)
+                table.add_column("Focus Node", style="cyan")
+                table.add_column("Property", style="yellow")
+                table.add_column("Value", style="white")
+                table.add_column("Message", style="red")
+                table.add_column("Severity", style="magenta")
+                
+                for v in result["violations"][:20]:  # Show max 20
+                    table.add_row(
+                        v["focus_node"] or "",
+                        v["property"] or "",
+                        v["value"] or "",
+                        v["message"],
+                        v["severity"]
+                    )
+                
+                console.print(table)
+                
+                if len(result["violations"]) > 20:
+                    console.print(f"\n[dim]... and {len(result['violations']) - 20} more violations[/dim]")
+                
+                # Show fix suggestions
+                console.print("\n[bold]Fix Suggestions:[/bold]")
+                for i, v in enumerate(result["violations"][:5], 1):
+                    if v["fix_suggestion"]:
+                        console.print(f"  {i}. {v['fix_suggestion']}")
+                
+                console.print()
+        
+        wait_for_enter()
+        clear_screen()
+        console.print("\n[bold cyan]═══ SHACL CONSTRAINTS MODE ═══[/bold cyan]\n")
 
     def run_lesson(self, lesson_num: int):
         """Run a specific lesson."""
